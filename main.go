@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -35,19 +36,30 @@ func handleConnection(connection net.Conn) {
 	for {
 		command, err := getCommand(connection)
 		if err != nil {
-			connection.Write([]byte{})
-      continue
+			fmt.Println("Error reading:", err.Error())
+			break
 		}
 
-    handleCommand(command)
+		handleCommand(connection, command)
 	}
 }
 
 func getCommand(connection net.Conn) (string, error) {
-	// TODO: get command from connection
-	return "GET abc", nil
+	message, err := bufio.NewReader(connection).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	return string(message), nil
 }
 
-func handleCommand(command string) {
-	// TODO: handle command
+func handleCommand(connection net.Conn, command string) {
+	res, err := connection.Write([]uint8("+OK\r\n"))
+	if err != nil {
+		fmt.Println("Error writing:", err.Error())
+		return
+	}
+
+	fmt.Println("Received command: ", command)
+	fmt.Println("Message sent to the client: ", res)
 }
